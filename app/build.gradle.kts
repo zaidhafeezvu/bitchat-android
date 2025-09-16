@@ -20,6 +20,12 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        
+        // 16KB page size compatibility settings
+        ndk {
+            // Ensure native libraries are compatible with 16KB page sizes
+            abiFilters += setOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+        }
     }
 
     dependenciesInfo {
@@ -39,9 +45,33 @@ android {
             )
         }
     }
+    
+    // Support for 16KB page size compatibility (Google Play requirement)
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+        // Enable 16KB page size testing
+        managedDevices {
+            devices {
+                create("pixel6Api31") {
+                    device = "Pixel 6"
+                    apiLevel = 31
+                    systemImageSource = "google"
+                }
+                create("pixel6Api34") {
+                    device = "Pixel 6"
+                    apiLevel = 34
+                    systemImageSource = "google"
+                }
+            }
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        // Enable core library desugaring for 16KB page size compatibility
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "1.8"
@@ -52,6 +82,10 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+        // Optimize for 16KB page size compatibility
+        jniLibs {
+            useLegacyPackaging = false
         }
     }
     lint {
@@ -103,6 +137,9 @@ dependencies {
 
     // Security preferences
     implementation(libs.androidx.security.crypto)
+    
+    // Core library desugaring for 16KB page size compatibility
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     
     // Testing
     testImplementation(libs.bundles.testing)
